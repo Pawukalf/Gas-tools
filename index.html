@@ -1,0 +1,25 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ENA32 / Trimix Top‑up Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="card">
+    <h1>ENA32 → Trimix Top‑up</h1>
+    <p class="hint">Conceptual planning tool. Always analyse gas and follow certified blending procedures.</p>
+
+    <label>Start O₂ (%) <input id="o2start" type="number" step="0.1" value="32"></label>
+    <label>Target O₂ (%) <input id="o2target" type="number" step="0.1" value="8"></label>
+
+    <label>Final Pressure (bar) <input id="pfinal" type="number" step="1" value="230"></label>
+
+    <button onclick="calc()">Calculate</button>
+    <pre id="out"></pre>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
