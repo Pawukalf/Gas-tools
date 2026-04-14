@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sydney Diving · Gas Tools</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <div class="brand">
+      <img src="./logo.png" class="logo" alt="Sydney Diving" onerror="this.style.display='none'">
+      <div>
+        <div class="brand__name">Sydney Diving</div>
+        <div class="brand__sub">Gas tools</div>
+      </div>
+    </div>
+    <nav>
+      <a href="https://sydneydiving.com.au/" target="_blank" rel="noopener">Shop</a>
+      <span class="pill">Gas tools</span>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <div class="heroHead">
+      <h1>Gas planning made simple</h1>
+      <button id="howBtn" class="howBtn" type="button" aria-expanded="false">How to use</button>
+    </div>
+    <p>Blend nitrox/trimix, check MOD, best mix and EAD. Always analyse before diving.</p>
+
+    <div id="howBox" class="howBox hidden">
+      <div class="howTitle">Quick guide</div>
+      <ol>
+        <li><b>Top‑up</b>: enter what’s in the tank now (O₂%, He%, pressure), set target mix + final pressure.</li>
+        <li><b>Empty</b>: switch to Empty, set target mix + final pressure (start assumed 0 bar).</li>
+        <li>Click <b>Calculate blend</b>. If a <b>Drain to</b> value appears, bleed down first.</li>
+        <li>Use <b>Copy to plan</b> to move target O₂% into <b>EAN Plan</b>.</li>
+      </ol>
+      <div class="muted">Planning aid only. Always analyse your final gas.</div>
+    </div>
+  </section>
+
+  <section class="sections side-by-side">
+
+    <!-- ===================== BLEND ===================== -->
+    <section class="section">
+      <div class="sectionHead">
+        <h2>Blend</h2>
+        <div class="seg" role="group" aria-label="Blend mode">
+          <button id="modeTop" class="segBtn segOn" type="button">Top-up</button>
+          <button id="modeEmpty" class="segBtn" type="button">Empty</button>
+        </div>
+      </div>
+
+      <div id="topupFields">
+        <div class="form two">
+          <label>Start O₂ %
+            <input id="b_startO2" type="number" value="34" step="0.1">
+          </label>
+          <label>Start He %
+            <input id="b_startHe" type="number" value="0" step="0.1">
+          </label>
+
+          <label>Start pressure (bar)
+            <input id="b_startBar" type="number" value="100" step="1">
+          </label>
+          <label>Final pressure (bar)
+            <input id="b_finalBar" type="number" value="230" step="1">
+          </label>
+
+          <label>Target O₂ %
+            <input id="b_targetO2" type="number" value="23" step="0.1">
+          </label>
+          <label>Target He %
+            <input id="b_targetHe" type="number" value="0" step="0.1">
+          </label>
+        </div>
+      </div>
+
+      <div id="emptyFields" class="hidden">
+        <div class="form two">
+          <label>Final pressure (bar)
+            <input id="b_finalBar2" type="number" value="230" step="1">
+          </label>
+          <div></div>
+          <label>Target O₂ %
+            <input id="b_targetO2_2" type="number" value="21" step="0.1">
+          </label>
+          <label>Target He %
+            <input id="b_targetHe_2" type="number" value="0" step="0.1">
+          </label>
+        </div>
+      </div>
+
+      <label>Top-up gas O₂ (air=21)
+        <input id="b_topO2" type="number" value="21" step="0.1">
+      </label>
+
+      <div class="actions">
+        <button id="btnBlend" type="button">Calculate blend</button>
+        <button id="btnCopyPlan" class="secondary" type="button">Copy to plan</button>
+      </div>
+
+      <div class="results highlight">
+        <div id="b_error" class="error"></div>
+
+        <div class="result" id="row_drain">
+          <span>Drain to</span>
+          <strong><span id="b_drain">—</span> bar</strong>
+        </div>
+        <div class="result" id="row_addHe">
+          <span>Add He</span>
+          <strong><span id="b_addHe">—</span> bar</strong>
+        </div>
+        <div class="result" id="row_addO2">
+          <span>Add O₂</span>
+          <strong><span id="b_addO2">—</span> bar</strong>
+        </div>
+        <div class="result">
+          <span>Add top-up</span>
+          <strong><span id="b_addTop">—</span> bar</strong>
+        </div>
+
+        <!-- ✅ Only the combined final mix row -->
+        <div class="result final">
+          <span>Final mix</span>
+          <strong>O₂ <span id="b_finalO2_out">—</span>% / He <span id="b_finalHe_out">—</span>%</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EAN PLAN ===================== -->
+    <section class="section">
+      <h2>EAN Plan</h2>
+
+      <div class="form two">
+        <label>EAN
+          <input id="p_mix" type="number" value="32" step="1">
+        </label>
+        <label>Depth (m)
+          <input id="p_depth" type="number" value="32" step="1">
+        </label>
+      </div>
+
+      <label>PPO₂ limit
+        <input id="p_ppo2" type="number" value="1.4" step="0.05">
+      </label>
+
+      <div class="results highlight">
+        <div class="result"><span>MOD</span><strong><span id="p_mod">—</span> m</strong></div>
+        <div class="result"><span>Best mix</span><strong>EAN <span id="p_best">—</span></strong></div>
+        <div class="result"><span>EAD</span><strong><span id="p_ead">—</span> m</strong></div>
+      </div>
+    </section>
+
+  </section>
+
+  <section class="support">
+    <p>
+      Want underwater prints or photo licences? Check out my work at
+      <a href="https://sydneydiving.com.au/" target="_blank" rel="noopener">sydneydiving.com.au</a>.
+    </p>
+    <div class="actions support-actions">
+      <a class="linkbtn" href="https://sydneydiving.com.au/" target="_blank" rel="noopener">Shop prints & photos</a>
+      <a class="coffee" href="https://buymeacoffee.com/sydneydiving" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+    </div>
+  </section>
+
+  <footer>
+    <small>Planning aid only. Use within your training and dive computer limits.</small>
+  </footer>
+</main>
+
+<script>
+/* ----------------------------
+   Small safety: enforce trailing slash for relative assets.
+   Relative URLs resolve differently without a trailing slash. [1](https://stackoverflow.com/questions/5457885/relative-urls-and-trailing-slashes)[2](https://developer.mozilla.org/en-US/docs/Web/API/URL_API/Resolving_relative_references)
+-----------------------------*/
+(function enforceTrailingSlash(){
+  const p = location.pathname;
+  if (p === '/gastools') location.replace('/gastools/');
+})();
+
+/* ----------------------------
+   UI toggles
+-----------------------------*/
+const howBtn = document.getElementById('howBtn');
+const howBox = document.getElementById('howBox');
+
+howBtn.addEventListener('click', () => {
+  const open = howBox.classList.contains('hidden');
+  howBox.classList.toggle('hidden', !open);
+  howBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  howBtn.textContent = open ? 'Back' : 'How to use';
+});
+
+let mode = 'top';
+const modeTop = document.getElementById('modeTop');
+const modeEmpty = document.getElementById('modeEmpty');
+const topupFields = document.getElementById('topupFields');
+const emptyFields = document.getElementById('emptyFields');
+
+function setMode(m){
+  mode = m;
+  modeTop.classList.toggle('segOn', m === 'top');
+  modeEmpty.classList.toggle('segOn', m === 'empty');
+  topupFields.classList.toggle('hidden', m !== 'top');
+  emptyFields.classList.toggle('hidden', m !== 'empty');
+}
+modeTop.addEventListener('click', () => setMode('top'));
+modeEmpty.addEventListener('click', () => setMode('empty'));
+
+/* ----------------------------
+   Maths helpers
+-----------------------------*/
+function clampPct(x){
+  x = Number(x);
+  if (!isFinite(x)) return 0;
+  return Math.min(Math.max(x, 0), 100);
+}
+function frac(x){ return clampPct(x) / 100; }
+function cleanBar(x){ return (Math.abs(x) < 0.05) ? 0 : x; }
+function fmtBar(x){ return cleanBar(x).toFixed(1); }
+
+/* ----------------------------
+   Blend maths (Top-up & Empty), with optional drain suggestion.
+   Model: partial-pressure with pure O2 + pure He + top-up gas (He=0, O2 = b_topO2).
+-----------------------------*/
+const b_error = document.getElementById('b_error');
+const b_drain = document.getElementById('b_drain');
+const b_addHe = document.getElementById('b_addHe');
+const b_addO2 = document.getElementById('b_addO2');
+const b_addTop = document.getElementById('b_addTop');
+const b_finalO2_out = document.getElementById('b_finalO2_out');
+const b_finalHe_out = document.getElementById('b_finalHe_out');
+const row_drain = document.getElementById('row_drain');
+const row_addHe = document.getElementById('row_addHe');
+
+function calcAdditions(Ps, sO2, sHe, Pf, tO2, tHe, Ftop){
+  const addHe = Pf*tHe - Ps*sHe;
+  const denom = (1 - Ftop);
+  const num = Pf*(tO2 - Ftop*(1 - tHe)) - Ps*(sO2 - Ftop + Ftop*sHe);
+  const addO2 = num/denom;
+  const addTop = Pf - Ps - addHe - addO2;
+  return {addHe, addO2, addTop};
+}
+
+function findDrain(Ps, sO2, sHe, Pf, tO2, tHe, Ftop){
+  // find max Pd in [0,Ps] that makes addHe/addO2/addTop >= 0
+  const denom = (1 - Ftop);
+  const A = Pf*(tO2 - Ftop*(1 - tHe));
+  const B = (sO2 - Ftop + Ftop*sHe);
+
+  let lo = 0, hi = Ps;
+
+  // addHe >= 0  => Pd <= Pf*tHe/sHe  (if sHe>0)
+  if (sHe > 1e-9) hi = Math.min(hi, (Pf*tHe)/sHe);
+
+  // addO2 >= 0  => (A - Pd*B)/denom >= 0
+  if (Math.abs(B) > 1e-12){
+    const bound = A/B;
+    if (B > 0) hi = Math.min(hi, bound);
+    else lo = Math.max(lo, bound);
+  } else {
+    if (A/denom < -1e-9) return null;
+  }
+
+  // addTop >= 0 => C0 + Pd*C1 >= 0
+  const C0 = Pf*(1 - tHe) - (A/denom);
+  const C1 = -(1 - sHe) + (B/denom);
+  if (Math.abs(C1) > 1e-12){
+    const bound = -C0/C1;
+    if (C1 > 0) lo = Math.max(lo, bound);
+    else hi = Math.min(hi, bound);
+  } else {
+    if (C0 < -1e-9) return null;
+  }
+
+  lo = Math.max(lo, 0);
+  hi = Math.min(hi, Ps);
+  if (hi < lo - 1e-6) return null;
+
+  return hi; // max feasible (minimum bleed)
+}
+
+function blend(){
+  b_error.textContent = '';
+  row_drain.classList.add('hidden');
+
+  const Ftop = frac(document.getElementById('b_topO2').value);
+  if (Ftop >= 1 - 1e-9){
+    b_error.textContent = 'Top-up gas O₂ must be less than 100.';
+    return;
+  }
+
+  let Ps, Pf, sO2, sHe, tO2, tHe;
+
+  if (mode === 'top'){
+    Ps = Number(document.getElementById('b_startBar').value);
+    Pf = Number(document.getElementById('b_finalBar').value);
+    sO2 = frac(document.getElementById('b_startO2').value);
+    sHe = frac(document.getElementById('b_startHe').value);
+    tO2 = frac(document.getElementById('b_targetO2').value);
+    tHe = frac(document.getElementById('b_targetHe').value);
+  } else {
+    Ps = 0;
+    Pf = Number(document.getElementById('b_finalBar2').value);
+    sO2 = 0; sHe = 0;
+    tO2 = frac(document.getElementById('b_targetO2_2').value);
+    tHe = frac(document.getElementById('b_targetHe_2').value);
+  }
+
+  if (!isFinite(Pf) || Pf <= 0){
+    b_error.textContent = 'Check final pressure.';
+    return;
+  }
+  if (!isFinite(Ps) || Ps < 0){
+    b_error.textContent = 'Check start pressure.';
+    return;
+  }
+  if (mode === 'top' && Ps > Pf){
+    b_error.textContent = 'Start pressure cannot be higher than final pressure.';
+    return;
+  }
+  if (sO2 + sHe > 1 + 1e-9){
+    b_error.textContent = 'Start mix: O₂ + He must be ≤ 100.';
+    return;
+  }
+  if (tO2 + tHe > 1 + 1e-9){
+    b_error.textContent = 'Target mix: O₂ + He must be ≤ 100.';
+    return;
+  }
+
+  let Pd = Ps;
+  let add = calcAdditions(Pd, sO2, sHe, Pf, tO2, tHe, Ftop);
+
+  // if top-up mode and negative, find drain
+  if (mode === 'top' && (add.addHe < -1e-6 || add.addO2 < -1e-6 || add.addTop < -1e-6)){
+    const found = findDrain(Ps, sO2, sHe, Pf, tO2, tHe, Ftop);
+    if (found === null){
+      b_error.textContent = 'Target not achievable with selected top-up gas. Try a different top-up gas or adjust target.';
+      return;
+    }
+    Pd = Math.max(0, Math.min(Ps, found));
+    add = calcAdditions(Pd, sO2, sHe, Pf, tO2, tHe, Ftop);
+  }
+
+  if (add.addHe < -1e-5 || add.addO2 < -1e-5 || add.addTop < -1e-5){
+    b_error.textContent = 'Target not achievable with selected top-up gas at this starting pressure.';
+    return;
+  }
+
+  // show drain if needed
+  if (mode === 'top' && Pd < Ps - 0.05){
+    row_drain.classList.remove('hidden');
+    b_drain.textContent = fmtBar(Pd);
+  } else {
+    b_drain.textContent = '—';
+  }
+
+  // show/hide He row
+  const hePct = Math.round(tHe * 100);
+  row_addHe.classList.toggle('hidden', hePct <= 0);
+
+  b_addHe.textContent  = fmtBar(add.addHe);
+  b_addO2.textContent  = fmtBar(add.addO2);
+  b_addTop.textContent = fmtBar(add.addTop);
+
+  b_finalO2_out.textContent = Math.round(tO2 * 100);
+  b_finalHe_out.textContent = hePct;
+}
+
+/* ----------------------------
+   EAN Plan maths
+-----------------------------*/
+const p_mod = document.getElementById('p_mod');
+const p_best = document.getElementById('p_best');
+const p_ead = document.getElementById('p_ead');
+
+function plan(){
+  const fo2 = frac(document.getElementById('p_mix').value);
+  const depth = Number(document.getElementById('p_depth').value);
+  const ppo2  = Number(document.getElementById('p_ppo2').value);
+  if (!isFinite(fo2) || !isFinite(depth) || !isFinite(ppo2) || fo2 <= 0 || ppo2 <= 0 || depth < 0) return;
+
+  const amb  = 1 + depth/10;
+  const mod  = 10 * (ppo2/fo2 - 1);
+  const best = (ppo2/amb)*100;
+  const ead  = ((depth+10)*((1-fo2)/0.79)) - 10;
+
+  p_mod.textContent  = Math.max(0, mod).toFixed(1);
+  p_best.textContent = Math.round(best);
+  p_ead.textContent  = Math.max(0, ead).toFixed(1);
+}
+
+function copyToPlan(){
+  const val = (mode === 'top')
+    ? document.getElementById('b_targetO2').value
+    : document.getElementById('b_targetO2_2').value;
+
+  document.getElementById('p_mix').value = Math.round(clampPct(val));
+  plan();
+  document.getElementById('p_mix').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ----------------------------
+   Wire buttons + live plan updates
+-----------------------------*/
+document.getElementById('btnBlend').addEventListener('click', blend);
+document.getElementById('btnCopyPlan').addEventListener('click', copyToPlan);
+
+['p_mix','p_depth','p_ppo2'].forEach(id => document.getElementById(id).addEventListener('input', plan));
+
+plan();
+blend();
+</script>
+
+</body>
+</html>
