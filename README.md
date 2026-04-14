@@ -27,9 +27,3 @@ Quick nitrox planning helpers:
 - **Best mix** for a depth and PPO₂ limit
 - **EAD** (Equivalent Air Depth) 
 
-Includes **Copy to plan** which copies the target O₂% from Blend into EAN Plan.
----
-
-## How to use
-
-### Blend (Top‑up)
