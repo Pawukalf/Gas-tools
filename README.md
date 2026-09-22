@@ -1,9 +1,9 @@
-# Sydney Diving — Gas Tools
+# Web app — Gas Tools
 
 Simple, fast scuba gas utilities for **nitrox/trimix blending** and **EAN planning** — built as a lightweight static site (HTML/CSS/JS).
 
 **Live:** https://sydneydiving.com.au/gastools/  
-**Author / Project:** @sydneydiving
+☕ Buy Me a Coffee: https://buymeacoffee.com/sydneydiving
 
 > ⚠️ **Planning aid only.** Always analyse your final gas and dive within your training, procedures, and dive computer limits.
 
