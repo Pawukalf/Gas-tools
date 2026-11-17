@@ -23,12 +23,14 @@ function setMode(next){
 }
 function setResultView(next){
   resultView=next;
-  togglePair($('viewFill'),$('viewAdd'),next==='fill');
+  $('resultToggle').classList.toggle('switchRight', next==='add');
+  $('resultToggle').setAttribute('aria-checked', String(next==='fill'));
   renderResults();
 }
 function setGasOrder(next){
   gasOrder=next;
-  togglePair($('orderO2'),$('orderHe'),next==='o2');
+  $('orderToggle').classList.toggle('switchRight', next==='he');
+  $('orderToggle').setAttribute('aria-checked', String(next==='o2'));
   renderResults();
 }
 
@@ -127,10 +129,8 @@ $('howBtn').addEventListener('click',()=>{
 });
 $('modeTop').addEventListener('click',()=>setMode('top'));
 $('modeEmpty').addEventListener('click',()=>setMode('empty'));
-$('viewFill').addEventListener('click',()=>setResultView('fill'));
-$('viewAdd').addEventListener('click',()=>setResultView('add'));
-$('orderO2').addEventListener('click',()=>setGasOrder('o2'));
-$('orderHe').addEventListener('click',()=>setGasOrder('he'));
+$('resultToggle').addEventListener('click',()=>setResultView(resultView==='fill'?'add':'fill'));
+$('orderToggle').addEventListener('click',()=>setGasOrder(gasOrder==='o2'?'he':'o2'));
 $('btnBlend').addEventListener('click',blend);
 document.querySelectorAll('input').forEach(input=>input.addEventListener('input',blend));
 blend();

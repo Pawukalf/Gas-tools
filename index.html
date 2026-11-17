@@ -73,17 +73,15 @@
       <div class="resultControls">
         <div>
           <span class="controlLabel">Result</span>
-          <div class="seg resultSeg" role="group" aria-label="Result type">
-            <button id="viewFill" class="segBtn segOn" type="button" aria-pressed="true">Fill</button>
-            <button id="viewAdd" class="segBtn" type="button" aria-pressed="false">Add</button>
-          </div>
+          <button id="resultToggle" class="mechSwitch" type="button" role="switch" aria-checked="true" aria-label="Switch between Fill and Add results">
+            <span class="switchText switchFill">Fill</span><span class="switchText switchAdd">Add</span><span class="switchKnob" aria-hidden="true"></span>
+          </button>
         </div>
         <div id="orderControl" class="hidden">
           <span class="controlLabel">Order</span>
-          <div class="seg resultSeg" role="group" aria-label="Gas filling order">
-            <button id="orderO2" class="segBtn segOn" type="button" aria-pressed="true">O₂ first</button>
-            <button id="orderHe" class="segBtn" type="button" aria-pressed="false">He first</button>
-          </div>
+          <button id="orderToggle" class="mechSwitch orderSwitch" type="button" role="switch" aria-checked="true" aria-label="Switch gas filling order">
+            <span class="switchText switchFill">O₂ 1st</span><span class="switchText switchAdd">He 1st</span><span class="switchKnob" aria-hidden="true"></span>
+          </button>
         </div>
       </div>
 
