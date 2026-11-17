@@ -68,7 +68,7 @@ function renderResults(){
   const box=$('resultSteps'); box.replaceChildren();
   if(!lastResult) return;
   const {Pd,Pf,addO2,addHe,addTop,didDrain,usingHe}=lastResult;
-  show($('orderControl'),usingHe);
+  show($('orderControl'),true);
   if(didDrain) box.append(step('Drain to',Pd));
 
   const gases=gasOrder==='o2'

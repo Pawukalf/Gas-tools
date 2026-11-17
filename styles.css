@@ -2,3 +2,46 @@
 @media(max-width:600px){.wrap{padding-left:14px;padding-right:14px}.topbar__inner{padding-top:14px;padding-bottom:14px}.logo{height:34px;max-width:120px}.brand__name,.brand__sub{display:none}nav a{display:none}.hero{padding:36px 0 22px}.heroHead{align-items:flex-start}.hero h1{font-size:36px}.howBtn{padding:9px 12px}.sectionHead h2{font-size:27px}.form.two{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}label{font-size:13px}input{font-size:16px;padding:13px 11px}.results.highlight{padding:16px 14px}.resultControls{align-items:stretch;flex-direction:column}.resultControls>div{width:100%}.resultControls .seg{display:grid;grid-template-columns:1fr 1fr}.resultControls .segBtn{width:100%}.result{font-size:15px}.result strong{font-size:18px}.result.final{align-items:flex-start}.result.final strong{white-space:normal;max-width:65%}.support{margin:56px 0 45px}}
 @media(max-width:370px){.form.two{grid-template-columns:1fr}.hero h1{font-size:32px}.segBtn{padding-left:11px;padding-right:11px}}
 .mechSwitch{position:relative;width:148px;height:42px;padding:0;border:0;border-radius:23px;background:#dfe3df;box-shadow:inset 0 2px 5px rgba(0,0,0,.18);cursor:pointer;font:inherit;font-weight:800;color:#667066;overflow:hidden;transition:background .2s ease}.mechSwitch .switchText{position:absolute;z-index:2;top:0;width:50%;height:42px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:color .2s ease}.mechSwitch .switchFill{left:0;color:#fff}.mechSwitch .switchAdd{right:0}.switchKnob{position:absolute;z-index:1;left:3px;top:3px;width:calc(50% - 3px);height:36px;border-radius:20px;background:#2f7d32;box-shadow:0 2px 5px rgba(0,0,0,.28);transition:transform .2s ease}.mechSwitch.switchRight .switchKnob{transform:translateX(100%)}.mechSwitch.switchRight .switchFill{color:#667066}.mechSwitch.switchRight .switchAdd{color:#fff}.mechSwitch:focus-visible{outline:3px solid rgba(47,125,50,.25);outline-offset:2px}.orderSwitch{width:170px}.resultControls>div.hidden{display:none!important}@media(max-width:600px){.mechSwitch{width:100%;height:44px}.mechSwitch .switchText{height:44px}.switchKnob{height:38px}.orderSwitch{width:100%}}
+
+/* Mobile refinement: compact operational layout */
+@media(max-width:600px){
+  body{font-size:15px}
+  .wrap{padding-left:12px;padding-right:12px}
+  .topbar__inner{padding:10px 12px}
+  .hero{padding:22px 0 16px}
+  .heroHead{gap:10px;align-items:center}
+  .hero h1{font-size:29px;line-height:1.08}
+  .hero p{font-size:14px;margin-top:8px}
+  .howBtn{font-size:13px;padding:7px 10px}
+  .sectionHead{margin-bottom:14px}
+  .sectionHead h2{font-size:24px}
+  .sectionHead .segBtn{min-height:36px;padding:7px 12px;font-size:13px}
+  .form.two{grid-template-columns:1fr 1fr;gap:10px 8px}
+  label{font-size:12px;gap:5px;font-weight:600}
+  input{min-height:44px;padding:9px 10px;border-radius:9px;font-size:17px;font-weight:500}
+  .topupGas{margin-top:10px}
+  .labelHint{font-weight:400}
+  .calculate{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:16px}
+  .results{margin-top:14px}
+  .results.highlight{padding:14px 12px;border-radius:14px}
+  .resultControls{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:13px;margin-bottom:10px;align-items:end}
+  .resultControls>div{width:100%;gap:5px}
+  .controlLabel{font-size:10px}
+  .mechSwitch,.orderSwitch{width:100%;height:38px}
+  .mechSwitch .switchText{height:38px;font-size:12px}
+  .switchKnob{height:32px;top:3px}
+  .result{padding:6px 0;font-size:14px}
+  .result strong{font-size:17px}
+  .result .skip,.skip{font-size:12px}
+  .result.final{padding-top:13px;margin-top:8px;align-items:center}
+  .result.final strong{font-size:17px;max-width:none;white-space:nowrap}
+  .support{margin:38px 0 32px;font-size:13px}
+  .support-actions{margin-top:10px}
+  footer{padding:24px 0;font-size:12px}
+}
+@media(max-width:360px){
+  .form.two{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:26px}
+  .resultControls{grid-template-columns:1fr}
+  .result.final strong{white-space:normal;text-align:right}
+}
