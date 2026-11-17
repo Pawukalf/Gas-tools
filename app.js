@@ -1,170 +1,136 @@
-let mode='top';
+let mode = 'top';
+let resultView = 'fill';
+let gasOrder = 'o2';
+let lastResult = null;
 
-function clampPct(x){x=Number(x);if(!isFinite(x))return 0;return Math.min(Math.max(x,0),100)}
-function frac(p){return clampPct(p)/100}
-function show(el, on){el.classList.toggle('hidden', !on)}
-function cleanBar(x){return (Math.abs(x) < 0.05) ? 0 : x}
-function fmtBar(x){return cleanBar(x).toFixed(1)}
+const $ = id => document.getElementById(id);
+function clampPct(x){ x=Number(x); return isFinite(x) ? Math.min(Math.max(x,0),100) : 0; }
+function frac(p){ return clampPct(p)/100; }
+function show(el,on){ el.classList.toggle('hidden',!on); }
+function cleanBar(x){ return Math.abs(x)<0.05 ? 0 : x; }
+function fmtBar(x){ return cleanBar(x).toFixed(1); }
+function isZero(x){ return Math.abs(x)<0.05; }
+function togglePair(on,off,first){
+  on.classList.toggle('segOn',first); off.classList.toggle('segOn',!first);
+  on.setAttribute('aria-pressed',String(first)); off.setAttribute('aria-pressed',String(!first));
+}
 
-function setMode(m){
-  mode=m;
-  modeTop.classList.toggle('segOn', m==='top');
-  modeEmpty.classList.toggle('segOn', m==='empty');
-  show(topupFields, m==='top');
-  show(emptyFields, m==='empty');
+function setMode(next){
+  mode=next;
+  togglePair($('modeTop'),$('modeEmpty'),next==='top');
+  show($('topupFields'),next==='top'); show($('emptyFields'),next==='empty');
   blend();
 }
-
-function calcAdditions(Ps, sO2, sHe, Pf, tO2, tHe, Ftop){
-  const addHe = Pf*tHe - Ps*sHe;
-  const denom = (1 - Ftop);
-  const num = Pf*(tO2 - Ftop*(1 - tHe)) - Ps*(sO2 - Ftop + Ftop*sHe);
-  const addO2 = num/denom;
-  const addTop = Pf - Ps - addHe - addO2;
-  return {addHe, addO2, addTop};
+function setResultView(next){
+  resultView=next;
+  togglePair($('viewFill'),$('viewAdd'),next==='fill');
+  renderResults();
+}
+function setGasOrder(next){
+  gasOrder=next;
+  togglePair($('orderO2'),$('orderHe'),next==='o2');
+  renderResults();
 }
 
-function findDrain(Ps, sO2, sHe, Pf, tO2, tHe, Ftop){
-  const denom = (1 - Ftop);
-  const A = Pf*(tO2 - Ftop*(1 - tHe));
-  const B = (sO2 - Ftop + Ftop*sHe);
+function calcAdditions(Ps,sO2,sHe,Pf,tO2,tHe,Ftop){
+  const addHe=Pf*tHe-Ps*sHe;
+  const denom=1-Ftop;
+  const num=Pf*(tO2-Ftop*(1-tHe))-Ps*(sO2-Ftop+Ftop*sHe);
+  const addO2=num/denom;
+  const addTop=Pf-Ps-addHe-addO2;
+  return {addHe,addO2,addTop};
+}
+function findDrain(Ps,sO2,sHe,Pf,tO2,tHe,Ftop){
+  const denom=1-Ftop, A=Pf*(tO2-Ftop*(1-tHe)), B=sO2-Ftop+Ftop*sHe;
+  let lo=0, hi=Ps;
+  if(sHe>1e-9) hi=Math.min(hi,(Pf*tHe)/sHe);
+  if(Math.abs(B)>1e-12){ const bound=A/B; if(B>0) hi=Math.min(hi,bound); else lo=Math.max(lo,bound); }
+  else if(A/denom<-1e-9) return null;
+  const C0=Pf*(1-tHe)-(A/denom), C1=-(1-sHe)+(B/denom);
+  if(Math.abs(C1)>1e-12){ const bound=-C0/C1; if(C1>0) lo=Math.max(lo,bound); else hi=Math.min(hi,bound); }
+  else if(C0<-1e-9) return null;
+  lo=Math.max(lo,0); hi=Math.min(hi,Ps);
+  return hi<lo-1e-6 ? null : hi;
+}
 
-  let lo = 0;
-  let hi = Ps;
+function step(label,value,skip=false){
+  const row=document.createElement('div'); row.className='result';
+  const name=document.createElement('span'); name.textContent=label;
+  const amount=document.createElement('strong');
+  if(skip){ amount.className='skip'; amount.textContent='SKIP'; }
+  else amount.textContent=`${fmtBar(value)} bar`;
+  row.append(name,amount); return row;
+}
 
-  if (sHe > 1e-9){
-    hi = Math.min(hi, (Pf*tHe)/sHe);
+function renderResults(){
+  const box=$('resultSteps'); box.replaceChildren();
+  if(!lastResult) return;
+  const {Pd,Pf,addO2,addHe,addTop,didDrain,usingHe}=lastResult;
+  show($('orderControl'),usingHe);
+  if(didDrain) box.append(step('Drain to',Pd));
+
+  const gases=gasOrder==='o2'
+    ? [{name:'O₂',amount:addO2},{name:'He',amount:addHe}]
+    : [{name:'He',amount:addHe},{name:'O₂',amount:addO2}];
+
+  if(resultView==='add'){
+    gases.forEach(g=>{ if(g.name==='He' && !usingHe) return; box.append(step(`Add ${g.name}`,g.amount,isZero(g.amount))); });
+    box.append(step('Add top-up',addTop,isZero(addTop)));
+  }else{
+    let gauge=Pd;
+    gases.forEach(g=>{
+      if(g.name==='He' && !usingHe) return;
+      if(isZero(g.amount)) box.append(step(g.name,0,true));
+      else { gauge+=g.amount; box.append(step(`${g.name} to`,gauge)); }
+    });
+    box.append(isZero(addTop) ? step('Top-up',0,true) : step('Top-up to',Pf));
   }
-
-  if (Math.abs(B) > 1e-12){
-    const bound = A/B;
-    if (B > 0) hi = Math.min(hi, bound);
-    else lo = Math.max(lo, bound);
-  } else {
-    if (A/denom < -1e-9) return null;
-  }
-
-  const C0 = Pf*(1 - tHe) - (A/denom);
-  const C1 = -(1 - sHe) + (B/denom);
-  if (Math.abs(C1) > 1e-12){
-    const bound = -C0/C1;
-    if (C1 > 0) lo = Math.max(lo, bound);
-    else hi = Math.min(hi, bound);
-  } else {
-    if (C0 < -1e-9) return null;
-  }
-
-  lo = Math.max(lo, 0);
-  hi = Math.min(hi, Ps);
-  if (hi < lo - 1e-6) return null;
-
-  return hi;
 }
 
 function blend(){
-  b_error.textContent='';
-
-  const Ftop = frac(b_topO2.value);
-  if(Ftop>=1-1e-9){b_error.textContent='Top-up gas O₂ must be less than 100.';return}
-
-  let Ps, Pf, sO2, sHe, tO2, tHe;
-
+  $('b_error').textContent=''; lastResult=null;
+  const Ftop=frac($('b_topO2').value);
+  if(Ftop>=1-1e-9){ $('b_error').textContent='Top-up gas O₂ must be less than 100.'; renderResults(); return; }
+  let Ps,Pf,sO2,sHe,tO2,tHe;
   if(mode==='top'){
-    Ps = Number(b_startBar.value);
-    Pf = Number(b_finalBar.value);
-    sO2 = frac(b_startO2.value);
-    sHe = frac(b_startHe.value);
-    tO2 = frac(b_targetO2.value);
-    tHe = frac(b_targetHe.value);
-  } else {
-    Ps = 0;
-    Pf = Number(b_finalBar2.value);
-    sO2 = 0; sHe = 0;
-    tO2 = frac(b_targetO2_2.value);
-    tHe = frac(b_targetHe_2.value);
+    Ps=Number($('b_startBar').value); Pf=Number($('b_finalBar').value);
+    sO2=frac($('b_startO2').value); sHe=frac($('b_startHe').value);
+    tO2=frac($('b_targetO2').value); tHe=frac($('b_targetHe').value);
+  }else{
+    Ps=0; Pf=Number($('b_finalBar2').value); sO2=0; sHe=0;
+    tO2=frac($('b_targetO2_2').value); tHe=frac($('b_targetHe_2').value);
   }
+  if(!isFinite(Pf)||Pf<=0){ $('b_error').textContent='Check final pressure.'; renderResults(); return; }
+  if(!isFinite(Ps)||Ps<0){ $('b_error').textContent='Check start pressure.'; renderResults(); return; }
+  if(mode==='top'&&Ps>Pf){ $('b_error').textContent='Start pressure cannot be higher than final pressure.'; renderResults(); return; }
+  if(sO2+sHe>1+1e-9){ $('b_error').textContent='Start mix: O₂ + He must be ≤ 100.'; renderResults(); return; }
+  if(tO2+tHe>1+1e-9){ $('b_error').textContent='Target mix: O₂ + He must be ≤ 100.'; renderResults(); return; }
 
-  if(!isFinite(Pf) || Pf<=0){b_error.textContent='Check final pressure.';return}
-  if(!isFinite(Ps) || Ps<0){b_error.textContent='Check start pressure.';return}
-  if(mode==='top' && Ps>Pf){b_error.textContent='Start pressure cannot be higher than final pressure.';return}
-  if(sO2+sHe>1+1e-9){b_error.textContent='Start mix: O₂ + He must be ≤ 100.';return}
-  if(tO2+tHe>1+1e-9){b_error.textContent='Target mix: O₂ + He must be ≤ 100.';return}
-
-  let Pd = Ps;
-  let add = calcAdditions(Pd, sO2, sHe, Pf, tO2, tHe, Ftop);
-
-  if(mode==='top' && (add.addHe < -1e-6 || add.addO2 < -1e-6 || add.addTop < -1e-6)){
-    const found = findDrain(Ps, sO2, sHe, Pf, tO2, tHe, Ftop);
-    if(found === null){
-      b_error.textContent='Target not achievable with selected top-up gas. Try a different top-up gas or adjust target.';
-      return;
-    }
-    Pd = Math.max(0, Math.min(Ps, found));
-    add = calcAdditions(Pd, sO2, sHe, Pf, tO2, tHe, Ftop);
+  let Pd=Ps, add=calcAdditions(Pd,sO2,sHe,Pf,tO2,tHe,Ftop);
+  if(mode==='top'&&(add.addHe<-1e-6||add.addO2<-1e-6||add.addTop<-1e-6)){
+    const found=findDrain(Ps,sO2,sHe,Pf,tO2,tHe,Ftop);
+    if(found===null){ $('b_error').textContent='Target not achievable with selected top-up gas. Try a different top-up gas or adjust target.'; renderResults(); return; }
+    Pd=Math.max(0,Math.min(Ps,found)); add=calcAdditions(Pd,sO2,sHe,Pf,tO2,tHe,Ftop);
   }
+  if(add.addHe<-1e-5||add.addO2<-1e-5||add.addTop<-1e-5){ $('b_error').textContent='Target not achievable with selected top-up gas at this starting pressure.'; renderResults(); return; }
 
-  if(add.addHe < -1e-5 || add.addO2 < -1e-5 || add.addTop < -1e-5){
-    b_error.textContent='Target not achievable with selected top-up gas at this starting pressure.';
-    return;
-  }
-
-  const didDrain = (mode==='top' && Pd < Ps - 0.05);
-  show(row_drain, didDrain);
-  if(didDrain) b_drain.textContent = fmtBar(Pd);
-
-  b_addHe.textContent = fmtBar(add.addHe);
-  b_addO2.textContent = fmtBar(add.addO2);
-  b_addTop.textContent = fmtBar(add.addTop);
-
-  const finalO2 = Math.round(tO2*100);
-  const finalHe = Math.round(tHe*100);
-  const usingHe = finalHe>0 || Math.round(clampPct((mode==='top')?b_startHe.value:0))>0;
-
-  show(row_addHe, usingHe);
-  show(row_finalTrimix, usingHe);
-  show(row_finalNitrox, !usingHe);
-
-  if(usingHe){
-    b_finalO2_2_out.textContent = finalO2;
-    b_finalHe.textContent = finalHe;
-  } else {
-    b_finalO2.textContent = finalO2;
-  }
+  const finalO2=Math.round(tO2*100), finalHe=Math.round(tHe*100);
+  $('b_finalO2_out').textContent=finalO2; $('b_finalHe_out').textContent=finalHe;
+  const usingHe=finalHe>0||Math.round(clampPct(mode==='top'?$('b_startHe').value:0))>0||!isZero(add.addHe);
+  lastResult={Pd,Pf,addO2:cleanBar(add.addO2),addHe:cleanBar(add.addHe),addTop:cleanBar(add.addTop),didDrain:mode==='top'&&Pd<Ps-0.05,usingHe};
+  renderResults();
 }
 
-function plan(){
-  const fo2 = frac(p_mix.value);
-  const depth = Number(p_depth.value);
-  const ppo2 = Number(p_ppo2.value);
-  if(!isFinite(fo2)||!isFinite(depth)||!isFinite(ppo2)||fo2<=0||ppo2<=0||depth<0){return}
-
-  const amb = 1 + depth/10;
-  const mod = 10 * (ppo2/fo2 - 1);
-  const best = (ppo2/amb)*100;
-  const ead = ((depth+10)*((1-fo2)/0.79)) - 10;
-
-  p_mod.textContent = Math.max(0,mod).toFixed(1);
-  p_best.textContent = Math.round(best);
-  p_ead.textContent = Math.max(0,ead).toFixed(1);
-}
-
-function copyToPlan(){
-  const val = (mode==='top') ? b_targetO2.value : b_targetO2_2.value;
-  p_mix.value = Math.round(clampPct(val));
-  plan();
-  p_mix.scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-howBtn.addEventListener('click', ()=>{
-  const open = howBox.classList.contains('hidden');
-  show(howBox, open);
-  howBtn.setAttribute('aria-expanded', open ? 'true':'false');
-  howBtn.textContent = open ? 'Back' : 'How to use';
+$('howBtn').addEventListener('click',()=>{
+  const open=$('howBox').classList.contains('hidden'); show($('howBox'),open);
+  $('howBtn').setAttribute('aria-expanded',String(open)); $('howBtn').textContent=open?'Back':'How to use';
 });
-
-modeTop.addEventListener('click', ()=>setMode('top'));
-modeEmpty.addEventListener('click', ()=>setMode('empty'));
-
-['p_mix','p_depth','p_ppo2'].forEach(id => document.getElementById(id).addEventListener('input', plan));
-plan();
+$('modeTop').addEventListener('click',()=>setMode('top'));
+$('modeEmpty').addEventListener('click',()=>setMode('empty'));
+$('viewFill').addEventListener('click',()=>setResultView('fill'));
+$('viewAdd').addEventListener('click',()=>setResultView('add'));
+$('orderO2').addEventListener('click',()=>setGasOrder('o2'));
+$('orderHe').addEventListener('click',()=>setGasOrder('he'));
+$('btnBlend').addEventListener('click',blend);
+document.querySelectorAll('input').forEach(input=>input.addEventListener('input',blend));
 blend();
